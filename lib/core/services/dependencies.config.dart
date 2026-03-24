@@ -14,6 +14,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
+import '../../features/asmaa_allah/data/datasources/asmaa_allah_remote_datasource.dart'
+    as _i1027;
+import '../../features/asmaa_allah/data/repositories/asmaa_allah_repository_impl.dart'
+    as _i632;
+import '../../features/asmaa_allah/domain/repositories/asmaa_allah_repository.dart'
+    as _i232;
+import '../../features/asmaa_allah/domain/usecases/get_asmaa_allah_usecase.dart'
+    as _i248;
+import '../../features/asmaa_allah/presentation/bloc/asmaa_bloc.dart' as _i241;
 import '../../features/counter/data/datasources/counter_local_data_source.dart'
     as _i976;
 import '../../features/counter/data/repositories/counter_repository_impl.dart'
@@ -42,19 +51,23 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i614.LoggerInterceptor>(() => _i614.LoggerInterceptor());
     gh.lazySingleton<_i361.Dio>(() => registerModule.dio);
     gh.factory<_i976.CounterLocalDataSource>(
-      () => _i976.InMemoryCounterLocalDataSource(),
+      () => _i976.InMemoryCounterLocalDataSource(
+        storage: gh<_i558.FlutterSecureStorage>(),
+      ),
     );
     gh.factory<_i514.CounterRepository>(
       () => _i770.CounterRepositoryImpl(
         localDataSource: gh<_i976.CounterLocalDataSource>(),
       ),
     );
-    gh.factory<_i256.CounterBloc>(
-      () => _i256.CounterBloc(
-        getCounter: gh<_i245.GetCounter>(),
-        incrementCounter: gh<_i931.IncrementCounter>(),
-        decrementCounter: gh<_i478.DecrementCounter>(),
-      ),
+    gh.factory<_i478.DecrementCounter>(
+      () => _i478.DecrementCounter(gh<_i514.CounterRepository>()),
+    );
+    gh.factory<_i245.GetCounter>(
+      () => _i245.GetCounter(gh<_i514.CounterRepository>()),
+    );
+    gh.factory<_i931.IncrementCounter>(
+      () => _i931.IncrementCounter(gh<_i514.CounterRepository>()),
     );
     gh.factory<_i357.ApiClient>(
       () => _i357.ApiClient(
@@ -62,6 +75,27 @@ extension GetItInjectableX on _i174.GetIt {
         loggingInterceptor: gh<_i614.LoggerInterceptor>(),
         storage: gh<_i558.FlutterSecureStorage>(),
       ),
+    );
+    gh.factory<_i1027.RemoteAsmaaDatasource>(
+      () => _i1027.RemoteAsmaaDataSourceImpl(dio: gh<_i357.ApiClient>()),
+    );
+    gh.lazySingleton<_i256.CounterBloc>(
+      () => _i256.CounterBloc(
+        getCounter: gh<_i245.GetCounter>(),
+        incrementCounter: gh<_i931.IncrementCounter>(),
+        decrementCounter: gh<_i478.DecrementCounter>(),
+      ),
+    );
+    gh.factory<_i232.AsmaaAllahRepository>(
+      () => _i632.AsmaaAllahRepositoryImpl(
+        remoteDataSource: gh<_i1027.RemoteAsmaaDatasource>(),
+      ),
+    );
+    gh.factory<_i248.GetAsmaaAllahUsecase>(
+      () => _i248.GetAsmaaAllahUsecase(repo: gh<_i232.AsmaaAllahRepository>()),
+    );
+    gh.lazySingleton<_i241.AsmaaBloc>(
+      () => _i241.AsmaaBloc(gh<_i248.GetAsmaaAllahUsecase>()),
     );
     return this;
   }

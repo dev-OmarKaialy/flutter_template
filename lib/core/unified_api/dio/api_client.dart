@@ -17,17 +17,20 @@ class ApiClient {
       ..options.connectTimeout = const Duration(milliseconds: 30000)
       ..options.receiveTimeout = const Duration(milliseconds: 30000)
       ..httpClientAdapter
-      ..options.headers = {'Accept': 'application/json', "token": storage.read(key: 'token') ?? ''};
+      ..options.headers = {'Accept': 'application/json', "token": ''};
     log(dio.options.headers.toString());
     dio.interceptors.clear();
     dio.interceptors.addAll([loggingInterceptor]);
   }
-  void resetHeader() {
+  void resetHeader() async {
     dio
       ..options.connectTimeout = const Duration(milliseconds: 30000)
       ..options.receiveTimeout = const Duration(milliseconds: 30000)
       ..httpClientAdapter
-      ..options.headers = {'Accept': 'application/json', "token": storage.read(key: 'token') ?? ''};
+      ..options.headers = {
+        'Accept': 'application/json',
+        if ((await storage.read(key: 'token')) != null) "token": (await storage.read(key: 'token')),
+      };
     dio.interceptors.clear();
     dio.interceptors.add(loggingInterceptor);
   }
@@ -41,7 +44,6 @@ class ApiClient {
   }) async {
     return await dio.getUri(
       uri,
-      data: data,
       options: options,
       cancelToken: cancelToken,
       onReceiveProgress: onReceiveProgress,

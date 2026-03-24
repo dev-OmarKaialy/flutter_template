@@ -14,7 +14,7 @@ part 'counter_state.dart';
 ///
 /// It coordinates user intents (events) with domain actions (use cases) and
 /// emits immutable UI states.
-@injectable
+@lazySingleton
 class CounterBloc extends Bloc<CounterEvent, CounterState> {
   /// Creates a `CounterBloc` with all required use cases.
   CounterBloc({

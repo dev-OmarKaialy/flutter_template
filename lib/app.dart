@@ -1,11 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:template/features/asmaa_allah/presentation/pages/asmaa_allah_screen.dart';
 
-import 'core/services/dependencies.dart';
 import 'core/theme/app_theme.dart';
-import 'features/counter/presentation/bloc/counter_bloc.dart';
-import 'features/counter/presentation/pages/counter_page.dart';
 
 /// Root widget for the template application.
 ///
@@ -23,13 +21,13 @@ class TemplateApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
+          locale: context.locale,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
           debugShowCheckedModeBanner: false,
-          title: 'Team Template',
+          title: 'Tasbih App',
           theme: AppTheme.lightTheme,
-          home: BlocProvider(
-            create: (_) => getIt<CounterBloc>()..add(const CounterStarted()),
-            child: const CounterPage(),
-          ),
+          home: const AsmaaAllahScreen(),
         );
       },
     );
