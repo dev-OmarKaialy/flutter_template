@@ -22,7 +22,7 @@ class ApiClient {
     dio.interceptors.clear();
     dio.interceptors.addAll([loggingInterceptor]);
   }
-  void resetHeader() async {
+  Future<void> resetHeader() async {
     dio
       ..options.connectTimeout = const Duration(milliseconds: 30000)
       ..options.receiveTimeout = const Duration(milliseconds: 30000)
@@ -93,13 +93,14 @@ class ApiClient {
   Future<Response> delete(
 
     Uri uri, {
-          await resetHeader();
 
     data,
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
   }) async {
+          await resetHeader();
+
     return await dio.deleteUri(uri, data: data, options: options, cancelToken: cancelToken);
   }
 }
