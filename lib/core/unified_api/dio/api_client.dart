@@ -42,6 +42,7 @@ class ApiClient {
     ProgressCallback? onReceiveProgress,
     data,
   }) async {
+    await resetHeader();
     return await dio.getUri(
       uri,
       options: options,
@@ -58,6 +59,7 @@ class ApiClient {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
+    await resetHeader();
     return await dio.postUri(
       uri,
       data: data,
@@ -76,6 +78,8 @@ class ApiClient {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
+        await resetHeader();
+
     return await dio.putUri(
       uri,
       data: data,
@@ -87,7 +91,10 @@ class ApiClient {
   }
 
   Future<Response> delete(
+
     Uri uri, {
+          await resetHeader();
+
     data,
     Map<String, dynamic>? queryParameters,
     Options? options,
