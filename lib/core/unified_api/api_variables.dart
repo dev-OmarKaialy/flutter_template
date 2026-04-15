@@ -25,4 +25,8 @@ class ApiVariables {
 
   Uri getAsmaaAllahUri({ParamsMap? params}) =>
       _mainUri(path: 'asma-ul-husna/', queryParameters: params);
+
+  Uri checkVersion() => _mainUri(path: 'app-version/check');
+
+  Uri getAppFile() => _mainUri(path: 'app-version/download');
 }

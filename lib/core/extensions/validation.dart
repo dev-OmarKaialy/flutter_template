@@ -1,3 +1,5 @@
+import 'package:phone_parser/phone_parser.dart';
+
 extension Validator on String {
   bool isValidEmail() {
     return RegExp(
@@ -14,9 +16,16 @@ extension Validator on String {
     return (isNotEmpty && length > 1);
   }
 
-  bool isValidPhone() {
-    // return RegExp(r'^(?:\+9639|09|009639)\d{8}$').hasMatch(this);
-    return RegExp(r'^(9)\d{8}$').hasMatch(this);
+  bool isValidPhone({String destinationCountry = 'SY'}) {
+    final value = trim();
+    if (value.isEmpty) return false;
+
+    try {
+      final phoneNumber = PhoneNumber.parse(value, destinationCountry: destinationCountry);
+      return phoneNumber.isValid();
+    } catch (_) {
+      return false;
+    }
   }
 
   bool isValidPassword() {
@@ -31,7 +40,7 @@ extension Validator on String {
     ).hasMatch(this);
   }
 
-  isValidFacebook() {
+  bool isValidFacebook() {
     return RegExp(
       r"^((https:\/\/){1})?(w{3}\.)?(facebook)(.com)\/[0-9a-zA-Z]+\/?",
       caseSensitive: false,
@@ -39,7 +48,7 @@ extension Validator on String {
     ).hasMatch(this);
   }
 
-  isValidInstagram() {
+  bool isValidInstagram() {
     return RegExp(
       r"^((https:\/\/){1})?(w{3}\.)?(instagram)(.com)\/[0-9a-zA-Z]+\/?",
       caseSensitive: false,
@@ -47,7 +56,7 @@ extension Validator on String {
     ).hasMatch(this);
   }
 
-  isValidLinkedin() {
+  bool isValidLinkedin() {
     return RegExp(
       r"^((https:\/\/){1})?(w{3}\.)?(linkedin)(.com)\/[0-9a-zA-Z]+\/?",
       caseSensitive: false,
@@ -55,7 +64,7 @@ extension Validator on String {
     ).hasMatch(this);
   }
 
-  isValidTiktok() {
+  bool isValidTiktok() {
     return RegExp(
       r"^((https:\/\/){1})?(w{3}\.)?(tiktok)(.com)\/[0-9a-zA-Z]+\/?",
       caseSensitive: false,
@@ -63,7 +72,7 @@ extension Validator on String {
     ).hasMatch(this);
   }
 
-  isValidYoutube() {
+  bool isValidYoutube() {
     return RegExp(
       r"^((https:\/\/){1})?(w{3}\.)?(youtube)(.com)\/[0-9a-zA-Z]+\/?",
       caseSensitive: false,

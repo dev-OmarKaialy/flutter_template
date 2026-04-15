@@ -26,6 +26,13 @@ dependencies:
   flutter_bloc: ^9.1.1
   firebase_core: ^4.5.0
   freezed_annotation: ^3.1.0
+  phone_parser: ^0.0.7
+  country_code_picker: ^3.4.1
+  android_package_installer: ^0.0.3
+  firebase_analytics: ^12.3.0
+  http: ^1.5.0
+  package_info_plus: ^9.0.1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

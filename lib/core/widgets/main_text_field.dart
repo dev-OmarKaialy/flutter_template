@@ -1,3 +1,4 @@
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../extensions/context_extensions.dart';
 import '../extensions/widget_extensions.dart';
 import '../theme/app_theme.dart';
+
+enum MainTextFieldType { text, phone, password }
 
 class MainTextField extends StatefulWidget {
   const MainTextField({
@@ -17,7 +20,7 @@ class MainTextField extends StatefulWidget {
     this.inputFormatter,
     this.suffixIcon,
     this.validator,
-    this.keyboardType = TextInputType.text,
+    this.keyboardType,
     this.textInputAction = TextInputAction.next,
     this.isPassword = false,
     this.enabled = true,
@@ -38,21 +41,32 @@ class MainTextField extends StatefulWidget {
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.contentPadding,
     this.textAlign = TextAlign.start,
-    this.hasDropDown = false,
     this.hintSize,
     this.fontSize,
     this.readOnly = false,
     this.text,
     this.textDirection,
     this.hasPoint = false,
-    this.code,
-    this.countryCode,
+    this.codeNotifier,
+    this.countryCodeNotifier,
     this.focusNode,
-  });
+    this.type = MainTextFieldType.text,
+  }) : assert(
+         type != MainTextFieldType.phone || (countryCodeNotifier != null && codeNotifier != null),
+         'countryCodeNotifier and codeNotifier are required for MainTextFieldType.phone',
+       ),
+       assert(
+         type != MainTextFieldType.phone || !isPassword,
+         'isPassword cannot be true when type is MainTextFieldType.phone',
+       ),
+       assert(
+         type != MainTextFieldType.password || isPassword,
+         'isPassword must be true when type is MainTextFieldType.password',
+       );
 
-  final ValueNotifier<String>? code;
-  final ValueNotifier<String>? countryCode;
-  final bool? hasDropDown;
+  final ValueNotifier<String>? codeNotifier;
+  final ValueNotifier<String>? countryCodeNotifier;
+  final MainTextFieldType type;
   final String? text;
   final FocusNode? focusNode;
   final TextInputFormatter? inputFormatter;
@@ -68,7 +82,7 @@ class MainTextField extends StatefulWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final TextEditingController? controller;
-  final TextInputType keyboardType;
+  final TextInputType? keyboardType;
   final bool isPassword;
   final bool enabled, readOnly;
   final bool autoFocus;
@@ -102,6 +116,15 @@ class _MainTextFieldState extends State<MainTextField> with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
     _obscure.value = widget.isPassword;
 
+    if (widget.type == MainTextFieldType.phone) {
+      if (widget.countryCodeNotifier!.value.isEmpty) {
+        widget.countryCodeNotifier!.value = 'SY';
+      }
+      if (widget.codeNotifier!.value.isEmpty) {
+        widget.codeNotifier!.value = '+963';
+      }
+    }
+
     // Detect direction from initial text if controller has value
     if (widget.controller?.text.isNotEmpty ?? false) {
       _textDirection.value = _detectDirection(widget.controller!.text);
@@ -122,6 +145,12 @@ class _MainTextFieldState extends State<MainTextField> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
+    final resolvedKeyboardType = widget.type == MainTextFieldType.phone
+        ? TextInputType.phone
+        : widget.isPassword
+        ? TextInputType.visiblePassword
+        : widget.keyboardType ?? TextInputType.text;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,14 +184,14 @@ class _MainTextFieldState extends State<MainTextField> with WidgetsBindingObserv
                   readOnly: widget.readOnly,
                   inputFormatters: widget.inputFormatter != null
                       ? [widget.inputFormatter!]
-                      : widget.keyboardType == TextInputType.number
+                      : widget.type == MainTextFieldType.phone
+                      ? [FilteringTextInputFormatter.digitsOnly]
+                      : resolvedKeyboardType == TextInputType.number
                       ? !widget.hasPoint
                             ? [FilteringTextInputFormatter.digitsOnly]
                             : [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))]
                       : null,
-                  keyboardType: widget.isPassword
-                      ? TextInputType.visiblePassword
-                      : widget.keyboardType,
+                  keyboardType: resolvedKeyboardType,
                   maxLines: widget.maxLines,
                   onChanged: (value) {
                     widget.onChanged?.call(value);
@@ -192,11 +221,12 @@ class _MainTextFieldState extends State<MainTextField> with WidgetsBindingObserv
                   obscuringCharacter: '*',
                   autofillHints: widget.isPassword
                       ? [AutofillHints.password]
-                      : widget.keyboardType == TextInputType.emailAddress
+                      : resolvedKeyboardType == TextInputType.emailAddress
                       ? [AutofillHints.email]
-                      : widget.keyboardType == TextInputType.number
+                      : resolvedKeyboardType == TextInputType.phone ||
+                            resolvedKeyboardType == TextInputType.number
                       ? [AutofillHints.telephoneNumber]
-                      : widget.keyboardType == TextInputType.name
+                      : resolvedKeyboardType == TextInputType.name
                       ? [AutofillHints.username]
                       : null,
                   decoration: _buildInputDecoration(obscureValue, context),
@@ -210,6 +240,8 @@ class _MainTextFieldState extends State<MainTextField> with WidgetsBindingObserv
   }
 
   InputDecoration _buildInputDecoration(bool obscureValue, BuildContext context) {
+    final usePhonePicker = widget.type == MainTextFieldType.phone;
+
     return InputDecoration(
       prefixText: widget.prefixText,
       contentPadding: widget.contentPadding,
@@ -266,7 +298,20 @@ class _MainTextFieldState extends State<MainTextField> with WidgetsBindingObserv
           width: 1.0,
         ),
       ),
-      prefixIcon: widget.prefixIcon,
+      prefixIcon: usePhonePicker
+          ? CountryCodePicker(
+              onChanged: (country) {
+                widget.countryCodeNotifier?.value = country.code ?? '';
+                widget.codeNotifier?.value = country.dialCode ?? '';
+              },
+              initialSelection: (widget.countryCodeNotifier?.value.isNotEmpty ?? false)
+                  ? widget.countryCodeNotifier!.value
+                  : 'SY',
+              showOnlyCountryWhenClosed: false,
+              alignLeft: false,
+              padding: EdgeInsets.zero,
+            )
+          : widget.prefixIcon,
       prefixIconConstraints: widget.smallSuffixIcon ? BoxConstraints(maxWidth: .15.sw) : null,
       suffixIcon: widget.isPassword
           ? (obscureValue ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off))

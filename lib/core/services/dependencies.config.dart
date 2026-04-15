@@ -33,6 +33,9 @@ import '../../features/counter/domain/usecases/decrement_counter.dart' as _i478;
 import '../../features/counter/domain/usecases/get_counter.dart' as _i245;
 import '../../features/counter/domain/usecases/increment_counter.dart' as _i931;
 import '../../features/counter/presentation/bloc/counter_bloc.dart' as _i256;
+import '../../features/update/presentation/cubit/update_cubit/update_cubit.dart'
+    as _i121;
+import '../../features/update/services/update_service.dart' as _i241;
 import '../unified_api/dio/api_client.dart' as _i357;
 import '../unified_api/dio/logger_interceptor.dart' as _i614;
 import '../unified_api/dio/register_module.dart' as _i305;
@@ -76,6 +79,9 @@ extension GetItInjectableX on _i174.GetIt {
         storage: gh<_i558.FlutterSecureStorage>(),
       ),
     );
+    gh.lazySingleton<_i241.UpdateService>(
+      () => _i241.UpdateService(apiClient: gh<_i357.ApiClient>()),
+    );
     gh.factory<_i1027.RemoteAsmaaDatasource>(
       () => _i1027.RemoteAsmaaDataSourceImpl(dio: gh<_i357.ApiClient>()),
     );
@@ -85,6 +91,9 @@ extension GetItInjectableX on _i174.GetIt {
         incrementCounter: gh<_i931.IncrementCounter>(),
         decrementCounter: gh<_i478.DecrementCounter>(),
       ),
+    );
+    gh.lazySingleton<_i121.UpdateCubit>(
+      () => _i121.UpdateCubit(gh<_i241.UpdateService>()),
     );
     gh.factory<_i232.AsmaaAllahRepository>(
       () => _i632.AsmaaAllahRepositoryImpl(

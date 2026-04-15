@@ -46,16 +46,18 @@ class UpdateCubit extends Cubit<UpdateState> {
       final dir = await getDownloadsDirectory();
       if (dir == null) {
         Toaster.showToast("حدث خطأ أثناء تحميل التحديث");
+        emit(state.copyWith(updateStatus: RequestStatus.init));
         return;
       }
-    //TODO! add the app name here
+
+      //TODO! add the app name here
       final file = File('${dir.path}/apk-attendance-system.apk');
       final sink = file.openWrite();
       final contentLength = response.contentLength ?? 0;
       int bytesReceived = 0;
 
       response.stream.listen(
-        (chunk) {
+        (List<int> chunk) {
           sink.add(chunk);
           bytesReceived += chunk.length;
           emit(state.copyWith(progress: contentLength > 0 ? bytesReceived / contentLength : 0.0));
@@ -81,6 +83,11 @@ class UpdateCubit extends Cubit<UpdateState> {
 
   Future<void> _installApk(String filePath) async {
     try {
+      if (!Platform.isAndroid) {
+        Toaster.showToast('التحديث التلقائي متاح فقط على أندرويد');
+        return;
+      }
+
       await AndroidPackageInstaller.installApk(apkFilePath: filePath);
       SystemNavigator.pop(animated: true);
     } catch (e) {
